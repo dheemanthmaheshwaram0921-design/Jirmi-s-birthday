@@ -1,1 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HBD JIRMI ENGTIPI 🎂</title>
+    <style>
+        :root {
+            --pink-glow: #ff006e;
+            --soft-pink: #ffafcc;
+            --glass: rgba(255, 255, 255, 0.12);
+        }
+
+        body, html {
+            margin: 0; padding: 0;
+            background: radial-gradient(circle at center, #2c001e 0%, #000000 100%);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            height: 100vh; overflow: hidden;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: white;
+            transition: background 2s ease-out;
+        }
+
+        /* Music Controls */
+        .audio-container {
+            position: fixed; top: 20px; right: 20px; z-index: 100;
+            background: var(--glass); backdrop-filter: blur(20px);
+            padding: 10px 20px; border-radius: 30px;
+            border: 1px solid rgba(255,255,255,0.2);
+            display: flex; align-items: center; gap: 10px;
+            transition: opacity 2s ease-out;
+        }
+        .music-btn {
+            background: var(--pink-glow); border: none; color: white;
+            padding: 8px 15px; border-radius: 20px; cursor: pointer;
+            font-weight: bold; font-size: 0.9rem; transition: transform 0.2s;
+        }
+        .music-btn:active { transform: scale(0.9); }
+
+        /* Main Display */
+        .profile-container {
+            position: relative; text-align: center; z-index: 10;
+            animation: float 4s ease-in-out infinite;
+            transition: opacity 2s ease-out, transform 2s ease-out;
+        }
+        .profile-pic {
+            width: 250px; height: 250px; object-fit: cover;
+            border-radius: 50%; border: 4px solid #fff;
+            box-shadow: 0 0 50px var(--pink-glow), inset 0 0 20px rgba(0,0,0,0.5);
+        }
+        h1 {
+            font-size: 3rem; font-weight: 900; margin: 20px 0 5px 0;
+            text-shadow: 0 0 20px var(--pink-glow); letter-spacing: -1px;
+        }
+        .subtitle { font-size: 1.2rem; opacity: 0.8; margin-bottom: 30px; font-weight: 300; }
+
+        /* Candle Mechanic */
+        .candle-box {
+            background: var(--glass); backdrop-filter: blur(25px);
+            padding: 20px 40px; border-radius: 50px;
+            border: 1px solid rgba(255,255,255,0.15);
+            display: inline-flex; flex-direction: column; align-items: center;
+            cursor: pointer; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .candle-box:hover { transform: scale(1.05); background: rgba(255,255,255,0.2); }
+        .cake-emoji { font-size: 4rem; position: relative; }
+        .flame {
+            position: absolute; top: -15px; left: 50%; transform: translateX(-50%);
+            font-size: 1.8rem; animation: flicker 0.6s infinite alternate;
+            transition: opacity 0.5s, transform 0.5s;
+        }
+        .instructions { font-size: 0.9rem; margin-top: 10px; color: var(--soft-pink); font-weight: 600; letter-spacing: 1px; }
+
+        /* End Screen Outro */
+        #outro-screen {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            background: transparent; z-index: 50; pointer-events: none;
+            opacity: 0; transition: opacity 3s ease-in-out;
+        }
+        .outro-title {
+            font-size: 4rem; font-weight: 900; text-align: center;
+            text-shadow: 0 0 30px var(--soft-pink);
+            background: linear-gradient(45deg, #ffffff, var(--soft-pink));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+
+        /* Graphics & Particle Overlays */
+        .sparkle-png {
+            position: absolute; pointer-events: none;
+            animation: driftUp 7s linear infinite; z-index: 1;
+        }
+
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+        @keyframes flicker { from { transform: translateX(-50%) scale(0.9) rotate(-2deg); opacity: 0.8; } to { transform: translateX(-50%) scale(1.1) rotate(2deg); opacity: 1; } }
+        @keyframes driftUp {
+            from { transform: translateY(110vh) scale(0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            to { transform: translateY(-10vh) scale(1.2); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="audio-container" id="music-widget">
+        <span>🎵 Now Playing</span>
+        <button class="music-btn" id="play-pause-btn" onclick="toggleMusic()">PAUSE</button>
+    </div>
+
+    <!-- Main Card View -->
+    <div class="profile-container" id="main-profile">
+        <img src="jirmi.jpg" alt="Jirmi Engtipi" class="profile-pic">
+        <h1>Jirmi Engtipi ✨</h1>
+        <div class="subtitle">Happiest Birthday to an amazing friend!</div>
+
+        <div class="candle-box" onclick="blowCandle()">
+            <div class="cake-emoji">
+                <span class="flame" id="candle-flame">🔥</span>
+                🎂
+            </div>
+            <div class="instructions" id="candle-text">TAP TO BLOW CANDLE</div>
+        </div>
+    </div>
+
+    <!-- Secret Outro Screen -->
+    <div id="outro-screen">
+        <div class="outro-title">Happy Birthday, Jirmi. 🌸💋</div>
+    </div>
+
+    <!-- Background Music Audio Tag (Removed loop so it can trigger the end) -->
+    <audio id="bg-audio" src="audio.mp3"></audio>
+
+    <script>
+        const audio = document.getElementById('bg-audio');
+        const playPauseBtn = document.getElementById('play-pause-btn');
+        let sparkleInterval;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            audio.play().catch(() => {
+                document.body.addEventListener('click', () => {
+                    if (audio.paused) {
+                        audio.play();
+                        playPauseBtn.innerText = "PAUSE";
+                    }
+                }, { once: true });
+            });
+            
+            sparkleInterval = setInterval(() => spawnVisualEffects(['💖', '✨', '🌸', '🎈', '🍰']), 400);
+        });
+
+        // Listen for the song ending
+        audio.addEventListener('ended', () => {
+            // 1. Clear the regular floating particles
+            clearInterval(sparkleInterval);
+
+            // 2. Smoothly fade out the profile card and music player
+            document.getElementById('main-profile').style.opacity = '0';
+            document.getElementById('main-profile').style.transform = 'scale(0.8)';
+            document.getElementById('music-widget').style.opacity = '0';
+            document.body.style.background = '#0d000a'; // Fade background into a cozy dark shade
+
+            // 3. Bring in the grand finale text screen
+            setTimeout(() => {
+                const outro = document.getElementById('outro-screen');
+                outro.style.opacity = '1';
+
+                // 4. Fire continuous explosion of flowers and kisses
+                setInterval(() => {
+                    spawnVisualEffects(['🌸', '💋', '🌹', '💐', '✨']);
+                }, 150);
+            }, 1500); // Small delay for the fade-out overlap synchronization
+        });
+
+        function toggleMusic() {
+            if (audio.paused) {
+                audio.play();
+                playPauseBtn.innerText = "PAUSE";
+            } else {
+                audio.pause();
+                playPauseBtn.innerText = "PLAY";
+            }
+        }
+
+        function blowCandle() {
+            const flame = document.getElementById('candle-flame');
+            const text = document.getElementById('candle-text');
+            
+            flame.style.opacity = '0';
+            flame.style.transform = 'translateX(-50%) scale(0) translateY(-20px)';
+            text.innerText = "WISH SENT! 🎉🎈";
+            
+            for(let i=0; i<30; i++) {
+                setTimeout(() => spawnVisualEffects(['💖', '✨', '🌸', '🎈', '🍰']), i * 50);
+            }
+        }
+
+        function spawnVisualEffects(emojisArray) {
+            const element = document.createElement('div');
+            element.className = 'sparkle-png';
+            element.innerText = emojisArray[Math.floor(Math.random() * emojisArray.length)];
+            element.style.left = Math.random() * 100 + 'vw';
+            element.style.fontSize = (Math.random() * 1.5 + 1.5) + 'rem';
+            element.style.animationDuration = (Math.random() * 4 + 4) + 's';
+            element.style.filter = `drop-shadow(0 0 15px var(--pink-glow))`;
+            
+            document.body.appendChild(element);
+            setTimeout(() => { element.remove(); }, 8000);
+        }
+    </script>
+</body>
+</html>
 
